@@ -7,6 +7,14 @@ Run:
     uv run streamlit run app/main.py
 """
 
+import os
+
+import streamlit as st
+
+# Bridge Streamlit secrets → environment variables for Pydantic Settings
+for key, value in st.secrets.items():
+    os.environ.setdefault(key.upper(), str(value))
+
 import sys
 from pathlib import Path
 
@@ -324,7 +332,7 @@ with st.sidebar:
             with Neo4jClient() as c:
                 c._database = None
                 rows = c.run(
-                    "MATCH (n) RETURN labels(n)[0] AS l, count(n) AS n ORDER BY n DESC"
+                    "MATCH (n) RETURN labels(n)[0] AS l, count(n) AS n ORDER BY n DESC",
                 )
             return {r["l"]: r["n"] for r in rows if r["l"]}
         except Exception:
