@@ -137,20 +137,44 @@ def render():
         unsafe_allow_html=True,
     )
 
-    cols = st.columns(len(report_names))
     selected = st.session_state.get("selected_report", report_names[0])
 
+    # CSS: highlight the active template button, style all others consistently
+    css_rules = ""
+    for name, info in REPORTS.items():
+        label = f"{info['icon']}  {name}"
+        escaped = label.replace('"', '\\"')
+        if name == selected:
+            css_rules += f"""
+            button[aria-label="{escaped}"] {{
+                background: #0d4a6e !important;
+                border-color: #58a6ff !important;
+                color: #ffffff !important;
+                box-shadow: 0 0 0 2px rgba(88,166,255,0.35) !important;
+                font-weight: 600 !important;
+            }}"""
+        else:
+            css_rules += f"""
+            button[aria-label="{escaped}"] {{
+                background: #0d1117 !important;
+                border-color: #30363d !important;
+                color: #e6edf3 !important;
+                font-weight: 400 !important;
+            }}
+            button[aria-label="{escaped}"]:hover {{
+                background: #161b22 !important;
+                border-color: #58a6ff !important;
+            }}"""
+    st.markdown(f"<style>{css_rules}</style>", unsafe_allow_html=True)
+
+    cols = st.columns(len(report_names))
     for i, name in enumerate(report_names):
         info = REPORTS[name]
-        is_selected = name == selected
-        border = "#58a6ff" if is_selected else "#d0d7de"
-        bg = "#f0f6ff" if is_selected else "#ffffff"
         with cols[i]:
             if st.button(
                 f"{info['icon']}  {name}",
                 key=f"rpt_{i}",
-                width="content",
-                type="primary" if is_selected else "secondary",
+                width="stretch",
             ):
                 st.session_state.selected_report = name
                 # Clear cached results when template changes

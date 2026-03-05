@@ -162,14 +162,38 @@ def render():
             "Suggested questions</div>",
             unsafe_allow_html=True,
         )
+
+        # Highlight selected suggestion via aria-label CSS targeting
+        selected_q = st.session_state.get("selected_suggestion", "")
+        css_rules = ""
+        for q in SUGGESTED_QUESTIONS:
+            escaped = q.replace('"', '\\"')
+            if q == selected_q:
+                css_rules += f"""
+                button[aria-label="{escaped}"] {{
+                    background: #0d4a6e !important;
+                    border-color: #58a6ff !important;
+                    color: #ffffff !important;
+                    box-shadow: 0 0 0 2px rgba(88,166,255,0.35) !important;
+                }}"""
+            else:
+                css_rules += f"""
+                button[aria-label="{escaped}"] {{
+                    background: #0d1117 !important;
+                    border-color: #30363d !important;
+                    color: #e6edf3 !important;
+                }}
+                button[aria-label="{escaped}"]:hover {{
+                    background: #161b22 !important;
+                    border-color: #58a6ff !important;
+                }}"""
+        st.markdown(f"<style>{css_rules}</style>", unsafe_allow_html=True)
+
         cols = st.columns(2)
         for i, q in enumerate(SUGGESTED_QUESTIONS):
             with cols[i % 2]:
-                if st.button(
-                    q,
-                    key=f"sug_{i}",
-                    width="content",
-                ):
+                if st.button(q, key=f"sug_{i}", width="stretch"):
+                    st.session_state.selected_suggestion = q
                     st.session_state.pending_question = q
                     st.rerun()
 
@@ -199,6 +223,7 @@ def render():
         if st.button("Clear", width="content"):
             st.session_state.messages = []
             st.session_state.pending_question = ""
+            st.session_state.selected_suggestion = ""
             st.rerun()
 
     # ── Trigger on button click or Enter (pending question) ──────────────────
